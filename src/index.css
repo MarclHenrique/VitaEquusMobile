@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 216 51% 23%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 216 51% 23%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 216 51% 23%;
+
+    --primary: 216 51% 23%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 104 33% 64%;
+    --secondary-foreground: 216 51% 18%;
+
+    --muted: 216 20% 95%;
+    --muted-foreground: 216 20% 46%;
+
+    --accent: 104 30% 90%;
+    --accent-foreground: 104 33% 30%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 216 15% 88%;
+    --input: 216 15% 88%;
+    --ring: 216 51% 23%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 216 51% 23%;
+    --sidebar-primary: 216 51% 23%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 104 30% 90%;
+    --sidebar-accent-foreground: 104 33% 30%;
+    --sidebar-border: 216 15% 88%;
+    --sidebar-ring: 216 51% 23%;
+
+    --vita-blue: 216 51% 23%;
+    --vita-blue-light: 216 45% 40%;
+    --vita-green: 104 33% 64%;
+    --vita-green-light: 104 30% 78%;
+    --vita-navy: 216 51% 18%;
+  }
+
+  .dark {
+    --background: 216 40% 8%;
+    --foreground: 104 20% 92%;
+
+    --card: 216 40% 12%;
+    --card-foreground: 104 20% 92%;
+
+    --popover: 216 40% 12%;
+    --popover-foreground: 104 20% 92%;
+
+    --primary: 216 45% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 104 30% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 216 30% 18%;
+    --muted-foreground: 216 15% 60%;
+
+    --accent: 104 20% 18%;
+    --accent-foreground: 104 30% 70%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 216 30% 20%;
+    --input: 216 30% 20%;
+    --ring: 216 45% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
