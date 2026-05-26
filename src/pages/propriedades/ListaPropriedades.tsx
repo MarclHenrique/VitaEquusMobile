@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { MobileLayout } from "@/components/MobileLayout";
 import { EmptyState } from "@/components/EmptyState";
 import { Building2, Plus, MapPin } from "lucide-react";
-import { KEYS } from "@/lib/store";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
 import { propriedadeService, type PropriedadeApi } from "@/services/propriedadeService";
 import type { Propriedade } from "@/types";
 import { Button } from "@/components/ui/button";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 8;
@@ -65,10 +65,6 @@ export default function ListaPropriedades() {
   const errorMessage = propriedadesQuery.error ? getApiErrorMessage(propriedadesQuery.error) : "";
 
   useEffect(() => {
-    localStorage.setItem(KEYS.propriedades, JSON.stringify(propriedades));
-  }, [propriedades]);
-
-  useEffect(() => {
     if (!propriedadesQuery.error) return;
 
     toast.error(getApiErrorMessage(propriedadesQuery.error));
@@ -108,7 +104,10 @@ export default function ListaPropriedades() {
                   <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{p.nome}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground truncate">{p.nome}</p>
+                    <RecordSyncBadge status={(propriedadesApi.find((item) => String(item.id) === p.id) as any)?.syncStatus} />
+                  </div>
                   <p className="text-xs text-muted-foreground">{labelTipoPropriedade(p.tipo_propriedade)}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <MapPin className="h-3 w-3 text-muted-foreground" />

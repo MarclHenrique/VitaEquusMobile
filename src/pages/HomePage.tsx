@@ -5,6 +5,7 @@ import { Heart, Stethoscope, Building2, ClipboardList, Pill } from "lucide-react
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
 import { dashboardService } from "@/services/dashboardService";
 import { Button } from "@/components/ui/button";
+import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
 import logo from "@/assets/logo.png";
 
 const quickActions = [
@@ -44,10 +45,11 @@ export default function HomePage() {
         {/* Header with logo */}
         <div className="flex items-center gap-3 mb-6">
           <img src={logo} alt="VitaEquus" className="w-10 h-10 rounded-xl object-contain" />
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">VitaEquus</h1>
             <p className="text-xs text-muted-foreground">{"Gest\u00e3o Reprodutiva"}</p>
           </div>
+          <SyncStatusIndicator />
         </div>
 
         {/* Stats */}

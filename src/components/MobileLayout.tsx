@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Home, Heart, Stethoscope, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { SyncStatusIndicator } from "@/components/SyncStatusIndicator";
 
 
 // Componente que usa CSS Mask para podermos colorir a imagem SVG externa
@@ -79,6 +80,7 @@ export function MobileLayout({ children, title, showBack, hideNav, headerRight }
             </button>
           )}
           <h1 className="text-lg font-semibold text-foreground flex-1 truncate">{title}</h1>
+          <SyncStatusIndicator />
           {headerRight}
         </header>
       )}

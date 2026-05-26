@@ -7,6 +7,7 @@ import { clinicoService, type AtendimentoClinicoApi, type InsumoResumo, type Med
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
 import { criarInsumoLookup, formatViaAdministracao, getInsumoNome } from "@/lib/medicacaoFormat";
 import { Button } from "@/components/ui/button";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 8;
@@ -89,9 +90,12 @@ export default function ListaMedicacoes() {
                 onClick={() => navigate(`/clinico/atendimento/${atendimento.id}`)}
                 className="w-full bg-card rounded-xl border border-border p-4 text-left"
               >
-                <p className="text-sm font-semibold text-foreground">
-                  {atendimento.animalNome ?? `Animal #${atendimento.animalId}`}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    {atendimento.animalNome ?? `Animal #${atendimento.animalId}`}
+                  </p>
+                  <RecordSyncBadge status={(medicacao as any).syncStatus} />
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {getInsumoNome(medicacao, insumosById)} - {medicacao.dose} - {formatViaAdministracao(medicacao.viaAdministracao)}
                 </p>

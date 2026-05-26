@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resolveApiUrl } from "@/lib/api";
 import { SESSION_EXPIRED_STORAGE_KEY } from "@/lib/authSession";
+import { warmInitialOfflineCache } from "@/services/initialCacheService";
 import logo from "@/assets/logo.png";
 
 type LoginResponse = {
@@ -68,6 +69,7 @@ export default function Login() {
         loggedIn: true,
       }));
 
+      void warmInitialOfflineCache();
       navigate("/home");
     } catch (error: unknown) {
       console.error("Erro no login:", error);

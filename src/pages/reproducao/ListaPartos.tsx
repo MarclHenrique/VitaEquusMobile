@@ -15,6 +15,7 @@ import { getApiErrorMessage, getAuthToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const TODOS = "all";
@@ -189,6 +190,7 @@ export default function ListaPartos() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {parto.doadoraNome ?? parto.animalNome ?? `Gestação #${parto.gestacaoId}`}
                   </p>
+                  <RecordSyncBadge status={(parto as any).syncStatus} />
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
                     {tipoPartoLabels[parto.tipoParto] ?? parto.tipoParto}
                   </span>

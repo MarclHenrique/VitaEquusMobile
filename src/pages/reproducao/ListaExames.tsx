@@ -17,6 +17,7 @@ import type { Animal } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const TODOS = "all";
@@ -205,6 +206,7 @@ export default function ListaExames() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {exame.animalNome ?? `Animal #${exame.animalId}`}
                   </p>
+                  <RecordSyncBadge status={(exame as any).syncStatus} />
                   <p className="text-[10px] text-muted-foreground shrink-0">{formatDate(exame.dataHora)}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">

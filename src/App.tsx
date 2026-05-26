@@ -9,6 +9,7 @@ import SplashScreen from "@/components/SplashScreen";
 import logo from "@/assets/logo.png";
 import { getAuthToken } from "@/lib/api";
 import { queryClient } from "@/lib/queryClient";
+import { warmInitialOfflineCache } from "@/services/initialCacheService";
 
 // Pages
 import Login from "./pages/Login";
@@ -72,6 +73,7 @@ const App = () => {
 
   useEffect(() => {
     setIsSessionLoading(false);
+    void warmInitialOfflineCache();
   }, []);
 
   return (

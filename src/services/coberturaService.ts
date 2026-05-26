@@ -1,4 +1,5 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
+import { coberturaRepository } from "@/repositories/coberturaRepository";
 
 export type TipoProcedimento =
   | "MONTA_NATURAL"
@@ -69,30 +70,22 @@ function jsonRequest<T>(path: string, method: "POST" | "PUT", payload: unknown) 
 
 export const coberturaService = {
   async listarCoberturas(params?: ListarCoberturasParams) {
-    const response = await apiRequest<CoberturaApi[] | PageResponse<CoberturaApi>>(
-      `/api/v1/coberturas${toQueryString(params)}`
-    );
-
-    return unwrapPageContent(response);
+    return coberturaRepository.list(params as Record<string, unknown>);
   },
 
   async listarCoberturasPage(params?: ListarCoberturasParams) {
-    const response = await apiRequest<CoberturaApi[] | PageResponse<CoberturaApi>>(
-      `/api/v1/coberturas${toQueryString(params)}`
-    );
-
-    return normalizePageResponse(response, params?.page ?? 0, params?.size ?? 10);
+    return coberturaRepository.listPage(params as Record<string, unknown>);
   },
 
   buscarCobertura(id: number) {
-    return apiRequest<CoberturaApi>(`/api/v1/coberturas/${id}`);
+    return coberturaRepository.get(id);
   },
 
   criarCobertura(payload: CriarCoberturaPayload) {
-    return jsonRequest<CoberturaApi>("/api/v1/coberturas", "POST", payload);
+    return coberturaRepository.create(payload);
   },
 
   atualizarCobertura(id: number, payload: AtualizarCoberturaPayload) {
-    return jsonRequest<CoberturaApi>(`/api/v1/coberturas/${id}`, "PUT", payload);
+    return coberturaRepository.update(id, payload);
   },
 };

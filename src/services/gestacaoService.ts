@@ -1,4 +1,6 @@
 import { apiRequest, buildQueryString, unwrapPageContent, type PageResponse } from "@/lib/api";
+import { checkupRepository } from "@/repositories/checkupRepository";
+import { gestacaoRepository } from "@/repositories/gestacaoRepository";
 
 export type ResultadoGestacao = "PRENHE" | "VAZIA" | "REABSORCAO" | "ABORTO";
 export type StatusGestacao = "EM_ANDAMENTO" | "FINALIZADA";
@@ -88,21 +90,15 @@ function jsonRequest<T>(path: string, method: "POST" | "PUT" | "PATCH", payload:
 
 export const gestacaoService = {
   async listarGestacoes(params?: ListarGestacoesParams) {
-    const response = await apiRequest<GestacaoApi[] | PageResponse<GestacaoApi>>(
-      `/api/v1/gestacoes${toQueryString(params)}`
-    );
-
-    return unwrapPageContent(response);
+    return gestacaoRepository.list(params as Record<string, unknown>);
   },
 
   listarGestacoesPage(params?: ListarGestacoesParams) {
-    return apiRequest<GestacaoApi[] | PageResponse<GestacaoApi>>(
-      `/api/v1/gestacoes${toQueryString(params)}`
-    );
+    return gestacaoRepository.listPage(params as Record<string, unknown>);
   },
 
   buscarGestacao(id: number) {
-    return apiRequest<GestacaoApi>(`/api/v1/gestacoes/${id}`);
+    return gestacaoRepository.get(id);
   },
 
   criarGestacao(payload: CriarGestacaoPayload) {
@@ -114,32 +110,26 @@ export const gestacaoService = {
       observacoes: payload.observacoes,
     };
 
-    return jsonRequest<GestacaoApi>("/api/v1/gestacoes", "POST", body);
+    return gestacaoRepository.create(body);
   },
 
   atualizarResultadoGestacao(id: number, payload: AtualizarResultadoGestacaoPayload) {
-    return jsonRequest<GestacaoApi>(`/api/v1/gestacoes/${id}/resultado`, "PATCH", payload);
+    return gestacaoRepository.update(id, payload, "PATCH");
   },
 
   async listarCheckups(gestacaoId: number) {
-    const response = await apiRequest<CheckupGestacionalApi[] | PageResponse<CheckupGestacionalApi>>(
-      `/api/v1/gestacoes/${gestacaoId}/checkups`
-    );
-
-    return unwrapPageContent(response);
+    return checkupRepository.listByGestacao(gestacaoId);
   },
 
   listarCheckupsPage(params?: ListarCheckupsParams) {
-    return apiRequest<CheckupGestacionalApi[] | PageResponse<CheckupGestacionalApi>>(
-      `/api/v1/checkups-gestacionais${buildQueryString(params)}`
-    );
+    return checkupRepository.listPage(params);
   },
 
   criarCheckup(gestacaoId: number, payload: CriarCheckupPayload) {
-    return jsonRequest<CheckupGestacionalApi>(`/api/v1/gestacoes/${gestacaoId}/checkups`, "POST", payload);
+    return checkupRepository.create(gestacaoId, payload);
   },
 
   atualizarCheckup(gestacaoId: number, checkupId: number, payload: AtualizarCheckupPayload) {
-    return jsonRequest<CheckupGestacionalApi>(`/api/v1/gestacoes/${gestacaoId}/checkups/${checkupId}`, "PUT", payload);
+    return checkupRepository.update(gestacaoId, checkupId, payload);
   },
 };

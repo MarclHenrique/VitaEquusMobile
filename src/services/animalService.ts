@@ -1,5 +1,6 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
 import type { Animal, AnimalRequest, CategoriaAnimal, StatusAnimal } from "@/types";
+import { animalRepository } from "@/repositories/animalRepository";
 
 type ListarAnimaisParams = {
   categoria?: CategoriaAnimal;
@@ -50,42 +51,22 @@ function normalizePayload(payload: AnimalRequest): AnimalRequest {
 
 export const animalService = {
   async listarAnimais(params?: ListarAnimaisParams) {
-    const response = await apiRequest<Animal[] | PageResponse<Animal>>(
-      `/api/v1/animais${buildQueryString(normalizeParams(params))}`
-    );
-
-    return unwrapPageContent(response);
+    return animalRepository.list(normalizeParams(params) as Record<string, unknown>);
   },
 
   async listarAnimaisPage(params?: ListarAnimaisParams) {
-    const response = await apiRequest<Animal[] | PageResponse<Animal>>(
-      `/api/v1/animais${buildQueryString(normalizeParams(params))}`
-    );
-
-    return normalizePageResponse(response, params?.page ?? 0, params?.size ?? 10);
+    return animalRepository.listPage(normalizeParams(params) as Record<string, unknown>);
   },
 
   criarAnimal(payload: AnimalRequest) {
-    return apiRequest<Animal>("/api/v1/animais", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(normalizePayload(payload)),
-    });
+    return animalRepository.create(normalizePayload(payload));
   },
 
   atualizarAnimal(id: number, payload: AnimalRequest) {
-    return apiRequest<Animal>(`/api/v1/animais/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(normalizePayload(payload)),
-    });
+    return animalRepository.update(id, normalizePayload(payload));
   },
 
   buscarAnimal(id: number) {
-    return apiRequest<Animal>(`/api/v1/animais/${id}`);
+    return animalRepository.get(id);
   },
 };

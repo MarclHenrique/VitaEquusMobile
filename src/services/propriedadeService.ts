@@ -1,4 +1,5 @@
 import { apiRequest, buildQueryString, normalizePageResponse, type PageResponse } from "@/lib/api";
+import { propriedadeRepository } from "@/repositories/propriedadeRepository";
 
 export type PropriedadeResumo = {
   id: number;
@@ -54,13 +55,7 @@ function normalizePropriedadePage(
 
 export const propriedadeService = {
   async listarPropriedades(params?: ListarPropriedadesParams): Promise<PropriedadePageResponse> {
-    const path = `/api/v1/propriedades${buildQueryString(params)}`;
-    const response = await apiRequest<PropriedadeApi[] | PageResponse<PropriedadeApi>>(path);
-
-    if (import.meta.env.DEV) {
-      console.log("GET propriedades:", path, response);
-    }
-
+    const response = await propriedadeRepository.listPage(params as Record<string, unknown>);
     return normalizePropriedadePage(response, params);
   },
 
@@ -75,5 +70,17 @@ export const propriedadeService = {
       id: Number(propriedade.id),
       nome: propriedade.nome,
     }));
+  },
+
+  buscarPropriedade(id: number | string) {
+    return propriedadeRepository.get(id);
+  },
+
+  criarPropriedade(payload: Omit<PropriedadeApi, "id">) {
+    return propriedadeRepository.create(payload);
+  },
+
+  atualizarPropriedade(id: number | string, payload: Partial<PropriedadeApi>) {
+    return propriedadeRepository.update(id, payload);
   },
 };

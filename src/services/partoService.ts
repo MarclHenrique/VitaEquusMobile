@@ -1,5 +1,7 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
 import type { ResultadoGestacao, StatusGestacao } from "@/services/gestacaoService";
+import { gestacaoRepository } from "@/repositories/gestacaoRepository";
+import { partoRepository } from "@/repositories/partoRepository";
 
 export type TipoParto = "NORMAL" | "DISTOCICO" | "CESARIANA";
 export type ResultadoParto = "VIVO" | "MORTO";
@@ -114,31 +116,23 @@ function jsonRequest<T>(path: string, method: "POST" | "PUT", payload: unknown) 
 
 export const partoService = {
   async listarPartos(params?: ListarPartosParams) {
-    const response = await apiRequest<PartoApi[] | PageResponse<PartoApi>>(
-      `/api/v1/partos${toQueryString(params)}`
-    );
-
-    return unwrapPageContent(response);
+    return partoRepository.list(params as Record<string, unknown>);
   },
 
   async listarPartosPage(params?: ListarPartosParams) {
-    const response = await apiRequest<PartoApi[] | PageResponse<PartoApi>>(
-      `/api/v1/partos${toQueryString(params)}`
-    );
-
-    return normalizePageResponse(response, params?.page ?? 0, params?.size ?? 10);
+    return partoRepository.listPage(params as Record<string, unknown>);
   },
 
   buscarParto(id: number) {
-    return apiRequest<PartoApi>(`/api/v1/partos/${id}`);
+    return partoRepository.get(id);
   },
 
   criarParto(payload: CriarPartoPayload) {
-    return jsonRequest<PartoApi>("/api/v1/partos", "POST", payload);
+    return partoRepository.create(payload);
   },
 
   atualizarParto(id: number, payload: AtualizarPartoPayload) {
-    return jsonRequest<PartoApi>(`/api/v1/partos/${id}`, "PUT", payload);
+    return partoRepository.update(id, payload);
   },
 
   async listarPotrosDoParto(id: number) {
@@ -156,11 +150,8 @@ export const partoService = {
   },
 
   async listarGestacoes(params?: ListarGestacoesPartoParams) {
-    const response = await apiRequest<GestacaoResumo[] | PageResponse<GestacaoResumo>>(
-      `/api/v1/gestacoes${toGestacoesQueryString(params)}`
-    );
-
-    return unwrapPageContent(response).map((gestacao) => ({
+    const response = await gestacaoRepository.list(params as Record<string, unknown>);
+    return response.map((gestacao) => ({
       ...gestacao,
       id: Number(gestacao.id),
     }));

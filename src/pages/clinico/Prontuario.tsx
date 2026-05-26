@@ -6,6 +6,7 @@ import { ClipboardList, Plus, ChevronRight } from "lucide-react";
 import { clinicoService, type AtendimentoClinicoApi, type TipoAtendimento } from "@/services/clinicoService";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const PAGE_SIZE = 10;
@@ -80,6 +81,7 @@ export default function Prontuario() {
                 <p className="text-sm font-semibold text-foreground truncate">
                   {atendimento.animalNome ?? `Animal #${atendimento.animalId}`}
                 </p>
+                <RecordSyncBadge status={(atendimento as any).syncStatus} />
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
                   {tipoLabels[atendimento.tipoAtendimento] ?? atendimento.tipoAtendimento}
                 </span>

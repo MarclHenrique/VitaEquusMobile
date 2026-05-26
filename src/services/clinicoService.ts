@@ -1,4 +1,7 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
+import { atendimentoRepository } from "@/repositories/atendimentoRepository";
+import { insumoRepository } from "@/repositories/insumoRepository";
+import { medicacaoRepository } from "@/repositories/medicacaoRepository";
 
 export type TipoAtendimento =
   | "CLINICO_GERAL"
@@ -89,45 +92,31 @@ function jsonRequest<T>(path: string, method: "POST" | "PUT", payload: unknown) 
 
 export const clinicoService = {
   async listarAtendimentos(params?: ListarAtendimentosParams) {
-    const response = await apiRequest<AtendimentoClinicoApi[] | PageResponse<AtendimentoClinicoApi>>(
-      `/api/v1/atendimentos${toQueryString(params)}`
-    );
-
-    return unwrapPageContent(response);
+    return atendimentoRepository.list(params as Record<string, unknown>);
   },
 
   listarAtendimentosPage(params?: ListarAtendimentosParams) {
-    return apiRequest<AtendimentoClinicoApi[] | PageResponse<AtendimentoClinicoApi>>(
-      `/api/v1/atendimentos${toQueryString(params)}`
-    ).then((response) => normalizePageResponse(response, params?.page ?? 0, params?.size ?? 10));
+    return atendimentoRepository.listPage(params as Record<string, unknown>);
   },
 
   buscarAtendimento(id: number) {
-    return apiRequest<AtendimentoClinicoApi>(`/api/v1/atendimentos/${id}`);
+    return atendimentoRepository.get(id);
   },
 
   criarAtendimento(payload: AtendimentoPayload) {
-    return jsonRequest<AtendimentoClinicoApi>("/api/v1/atendimentos", "POST", payload);
+    return atendimentoRepository.create(payload);
   },
 
   atualizarAtendimento(id: number, payload: AtendimentoPayload) {
-    return jsonRequest<AtendimentoClinicoApi>(`/api/v1/atendimentos/${id}`, "PUT", payload);
+    return atendimentoRepository.update(id, payload);
   },
 
   async listarMedicacoes(atendimentoId: number) {
-    const response = await apiRequest<MedicacaoApi[] | PageResponse<MedicacaoApi>>(
-      `/api/v1/atendimentos/${atendimentoId}/medicacoes`
-    );
-
-    return unwrapPageContent(response);
+    return medicacaoRepository.listByAtendimento(atendimentoId);
   },
 
   registrarMedicacao(atendimentoId: number, payload: MedicacaoPayload) {
-    return jsonRequest<MedicacaoApi>(
-      `/api/v1/atendimentos/${atendimentoId}/medicacoes`,
-      "POST",
-      payload
-    );
+    return medicacaoRepository.create(atendimentoId, payload);
   },
 
   removerMedicacao(atendimentoId: number, medicacaoId: number) {
@@ -137,9 +126,8 @@ export const clinicoService = {
   },
 
   async listarInsumos() {
-    const response = await apiRequest<InsumoResumo[] | PageResponse<InsumoResumo>>("/api/v1/insumos");
-
-    return unwrapPageContent(response).map((insumo) => ({
+    const response = await insumoRepository.list();
+    return response.map((insumo) => ({
       ...insumo,
       id: Number(insumo.id),
     }));

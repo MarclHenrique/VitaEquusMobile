@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { KEYS } from "@/lib/store";
-import { apiRequest, getAuthToken } from "@/lib/api";
+import { getAuthToken } from "@/lib/api";
+import { propriedadeService } from "@/services/propriedadeService";
 import type { Propriedade } from "@/types";
 import { toast } from "sonner";
 
@@ -46,11 +46,11 @@ export default function FormPropriedade() {
       return;
     }
 
-    apiRequest<PropriedadeApi>(`/api/v1/propriedades/${id}`)
+    propriedadeService.buscarPropriedade(id)
       .then((propriedade) => {
         setForm({
           nome: propriedade.nome,
-          tipo_propriedade: propriedade.tipoPropriedade,
+          tipo_propriedade: (propriedade.tipoPropriedade ?? "Haras") as Propriedade["tipo_propriedade"],
           endereco: propriedade.endereco ?? "",
           cidade: propriedade.cidade ?? "",
           estado: propriedade.estado ?? "",
@@ -86,26 +86,10 @@ export default function FormPropriedade() {
         email: form.email,
       };
 
-      const responseBody = await apiRequest<PropriedadeApi>(
-        isEditing ? `/api/v1/propriedades/${id}` : "/api/v1/propriedades/v2",
-        {
-          method: isEditing ? "PUT" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!isEditing) {
-        const cached = JSON.parse(localStorage.getItem(KEYS.propriedades) || "[]") as Propriedade[];
-        localStorage.setItem(KEYS.propriedades, JSON.stringify([
-          ...cached,
-          {
-            id: String(responseBody.id),
-            ...form,
-          },
-        ]));
+      if (isEditing && id) {
+        await propriedadeService.atualizarPropriedade(id, payload);
+      } else {
+        await propriedadeService.criarPropriedade(payload);
       }
 
       toast.success(isEditing ? "Propriedade atualizada" : "Propriedade cadastrada");

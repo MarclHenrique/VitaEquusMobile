@@ -17,6 +17,7 @@ import type { Animal } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const TODOS = "all";
@@ -220,6 +221,7 @@ export default function ListaCoberturas() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {(cobertura.doadoraNome ?? `Doadora #${cobertura.doadoraAnimalId}`)} x {(cobertura.produtorNome ?? `Produtor #${cobertura.produtorAnimalId}`)}
                   </p>
+                  <RecordSyncBadge status={(cobertura as any).syncStatus} />
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-medium shrink-0">
                     {procedimentoLabels[cobertura.tipoProcedimento] ?? cobertura.tipoProcedimento}
                   </span>

@@ -12,6 +12,7 @@ import { getApiErrorMessage, getAuthToken, normalizePageResponse } from "@/lib/a
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
 
 const TODOS = "all";
@@ -232,6 +233,7 @@ export default function ListaCheckups() {
                     <p className="text-sm font-semibold text-foreground truncate">{checkup.resultado || "Check-up"}</p>
                     <p className="text-[10px] text-muted-foreground">{formatDateTime(checkup.dataHora)}</p>
                   </div>
+                  <RecordSyncBadge status={(checkup as any).syncStatus} />
                 </div>
                 {!gestacaoIdNumber && (
                   <p className="text-xs text-muted-foreground">{checkup.gestacaoLabel}</p>

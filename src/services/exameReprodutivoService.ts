@@ -1,4 +1,6 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
+import { exameReprodutivoRepository } from "@/repositories/exameReprodutivoRepository";
+import { insumoRepository } from "@/repositories/insumoRepository";
 
 export type EdemaUterino =
   | "AUSENTE"
@@ -82,37 +84,28 @@ function jsonRequest<T>(path: string, method: "POST" | "PUT", payload: unknown) 
 
 export const exameReprodutivoService = {
   async listarExamesReprodutivos(params?: ListarExamesReprodutivosParams) {
-    const response = await apiRequest<ExameReprodutivoApi[] | PageResponse<ExameReprodutivoApi>>(
-      `/api/v1/exames-reprodutivos${toQueryString(params)}`
-    );
-
-    return unwrapPageContent(response);
+    return exameReprodutivoRepository.list(params as Record<string, unknown>);
   },
 
   async listarExamesReprodutivosPage(params?: ListarExamesReprodutivosParams) {
-    const response = await apiRequest<ExameReprodutivoApi[] | PageResponse<ExameReprodutivoApi>>(
-      `/api/v1/exames-reprodutivos${toQueryString(params)}`
-    );
-
-    return normalizePageResponse(response, params?.page ?? 0, params?.size ?? 10);
+    return exameReprodutivoRepository.listPage(params as Record<string, unknown>);
   },
 
   buscarExameReprodutivo(id: number) {
-    return apiRequest<ExameReprodutivoApi>(`/api/v1/exames-reprodutivos/${id}`);
+    return exameReprodutivoRepository.get(id);
   },
 
   criarExameReprodutivo(payload: CriarExameReprodutivoPayload) {
-    return jsonRequest<ExameReprodutivoApi>("/api/v1/exames-reprodutivos", "POST", payload);
+    return exameReprodutivoRepository.create(payload);
   },
 
   atualizarExameReprodutivo(id: number, payload: AtualizarExameReprodutivoPayload) {
-    return jsonRequest<ExameReprodutivoApi>(`/api/v1/exames-reprodutivos/${id}`, "PUT", payload);
+    return exameReprodutivoRepository.update(id, payload);
   },
 
   async listarInsumos() {
-    const response = await apiRequest<InsumoResumo[] | PageResponse<InsumoResumo>>("/api/v1/insumos");
-
-    return unwrapPageContent(response).map((insumo) => ({
+    const response = await insumoRepository.list();
+    return response.map((insumo) => ({
       ...insumo,
       id: Number(insumo.id),
     }));
