@@ -49,7 +49,10 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json() as LoginResponse;
+      const contentType = response.headers.get("content-type") ?? "";
+      const data = contentType.includes("application/json")
+        ? await response.json() as LoginResponse
+        : { message: await response.text() } satisfies LoginResponse;
 
       if (!response.ok) {
         throw new Error(data.message || data.error || "Email ou senha invalidos");

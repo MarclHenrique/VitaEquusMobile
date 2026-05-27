@@ -15,11 +15,23 @@ export default defineConfig(({ mode }) => ({
         target: "http://localhost:8081",
         changeOrigin: true,
         secure: false,
+        rewriteWsOrigin: true,
+        configure: (proxy) => {
+          proxy.on("proxyReq", (proxyReq) => {
+            proxyReq.setHeader("Origin", "http://localhost:8081");
+          });
+        },
       },
       "/api": {
         target: "http://localhost:8081",
         changeOrigin: true,
         secure: false,
+        rewriteWsOrigin: true,
+        configure: (proxy) => {
+          proxy.on("proxyReq", (proxyReq) => {
+            proxyReq.setHeader("Origin", "http://localhost:8081");
+          });
+        },
       },
     },
   },
