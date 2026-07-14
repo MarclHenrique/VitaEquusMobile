@@ -19,7 +19,7 @@ const TODOS = "all";
 const PAGE_SIZE = 10;
 
 type CheckupComGestacao = CheckupGestacionalApi & {
-  gestacaoId: number;
+  gestacaoId: number | string;
   gestacaoLabel: string;
 };
 
@@ -122,7 +122,7 @@ export default function ListaCheckups() {
         normalized.content
           .filter((checkup) => isDateInRange(checkup.dataHora, dataInicio, dataFim))
           .map((checkup) => {
-            const id = checkup.gestacaoId ?? filtroGestacaoId ?? 0;
+            const id = checkup.gestacaoId ?? filtroGestacaoId ?? checkup.gestacaoLocalId ?? 0;
 
             return {
               ...checkup,
@@ -233,7 +233,7 @@ export default function ListaCheckups() {
                     <p className="text-sm font-semibold text-foreground truncate">{checkup.resultado || "Check-up"}</p>
                     <p className="text-[10px] text-muted-foreground">{formatDateTime(checkup.dataHora)}</p>
                   </div>
-                  <RecordSyncBadge status={(checkup as any).syncStatus} />
+                  <RecordSyncBadge status={(checkup as { syncStatus?: string | null }).syncStatus} />
                 </div>
                 {!gestacaoIdNumber && (
                   <p className="text-xs text-muted-foreground">{checkup.gestacaoLabel}</p>

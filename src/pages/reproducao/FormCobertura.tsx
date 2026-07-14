@@ -17,6 +17,8 @@ import {
   type TipoSemen,
 } from "@/services/coberturaService";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
+import { ANIMAL_PROPERTY_MESSAGE, filterAnimalsByProperty, hasAnimalInProperty } from "@/lib/animalProperty";
+import { isLocalReference } from "@/lib/offlineIdentity";
 import type { Animal } from "@/types";
 import { toast } from "sonner";
 
@@ -120,8 +122,9 @@ export default function FormCobertura() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const doadoras = useMemo(() => animais.filter(isDoadora), [animais]);
-  const produtores = useMemo(() => animais.filter(isProdutor), [animais]);
+  const animaisDaPropriedade = useMemo(() => filterAnimalsByProperty(animais, form.propriedadeId), [animais, form.propriedadeId]);
+  const doadoras = useMemo(() => animaisDaPropriedade.filter(isDoadora), [animaisDaPropriedade]);
+  const produtores = useMemo(() => animaisDaPropriedade.filter(isProdutor), [animaisDaPropriedade]);
   const semenDisabled = form.tipoProcedimento === "MONTA_NATURAL";
 
   useEffect(() => {
@@ -169,10 +172,26 @@ export default function FormCobertura() {
     });
   };
 
+  useEffect(() => {
+    if (!form.propriedadeId) return;
+
+    setForm((prev) => ({
+      ...prev,
+      doadoraAnimalId: prev.doadoraAnimalId && !hasAnimalInProperty(animais, prev.doadoraAnimalId, prev.propriedadeId) ? "" : prev.doadoraAnimalId,
+      produtorAnimalId: prev.produtorAnimalId && !hasAnimalInProperty(animais, prev.produtorAnimalId, prev.propriedadeId) ? "" : prev.produtorAnimalId,
+    }));
+  }, [animais, form.propriedadeId]);
+
   const validate = () => {
     if (!form.doadoraAnimalId) return "Selecione a doadora.";
     if (!form.produtorAnimalId) return "Selecione o produtor.";
     if (!form.propriedadeId) return "Selecione uma propriedade.";
+    if (
+      !hasAnimalInProperty(animais, form.doadoraAnimalId, form.propriedadeId) ||
+      !hasAnimalInProperty(animais, form.produtorAnimalId, form.propriedadeId)
+    ) {
+      return ANIMAL_PROPERTY_MESSAGE;
+    }
     if (!form.tipoProcedimento) return "Selecione o procedimento.";
     if (!form.dataHora.trim()) return "Informe a data/hora.";
     if (form.tipoProcedimento !== "MONTA_NATURAL" && form.tipoSemen === SEM_SEMEN) {
@@ -189,9 +208,12 @@ export default function FormCobertura() {
   );
 
   const buildCreatePayload = (): CriarCoberturaPayload => ({
-    doadoraAnimalId: Number(form.doadoraAnimalId),
-    produtorAnimalId: Number(form.produtorAnimalId),
-    propriedadeId: Number(form.propriedadeId),
+    doadoraAnimalId: isLocalReference(form.doadoraAnimalId) ? null : Number(form.doadoraAnimalId),
+    doadoraAnimalLocalId: isLocalReference(form.doadoraAnimalId) ? form.doadoraAnimalId : null,
+    produtorAnimalId: isLocalReference(form.produtorAnimalId) ? null : Number(form.produtorAnimalId),
+    produtorAnimalLocalId: isLocalReference(form.produtorAnimalId) ? form.produtorAnimalId : null,
+    propriedadeId: isLocalReference(form.propriedadeId) ? null : Number(form.propriedadeId),
+    propriedadeLocalId: isLocalReference(form.propriedadeId) ? form.propriedadeId : null,
     tipoProcedimento: form.tipoProcedimento,
     tipoSemen: getTipoSemenPayload(),
     dataHora: toBackendDateTime(form.dataHora),

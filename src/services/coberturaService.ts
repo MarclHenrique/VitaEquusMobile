@@ -13,10 +13,13 @@ export type TipoSemen =
   | "CONGELADO";
 
 export type CoberturaApi = {
-  id: number;
-  doadoraAnimalId: number;
-  produtorAnimalId: number;
-  propriedadeId: number;
+  id: number | string;
+  doadoraAnimalId: number | string | null;
+  doadoraAnimalLocalId?: string | null;
+  produtorAnimalId: number | string | null;
+  produtorAnimalLocalId?: string | null;
+  propriedadeId: number | string | null;
+  propriedadeLocalId?: string | null;
   tipoProcedimento: TipoProcedimento;
   tipoSemen: TipoSemen | null;
   dataHora: string;
@@ -27,9 +30,12 @@ export type CoberturaApi = {
 };
 
 export type CriarCoberturaPayload = {
-  doadoraAnimalId: number;
-  produtorAnimalId: number;
-  propriedadeId: number;
+  doadoraAnimalId?: number | null;
+  doadoraAnimalLocalId?: string | null;
+  produtorAnimalId?: number | null;
+  produtorAnimalLocalId?: string | null;
+  propriedadeId?: number | null;
+  propriedadeLocalId?: string | null;
   tipoProcedimento: TipoProcedimento;
   tipoSemen: TipoSemen | null;
   dataHora: string;

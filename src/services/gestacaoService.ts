@@ -6,9 +6,10 @@ export type ResultadoGestacao = "PRENHE" | "VAZIA" | "REABSORCAO" | "ABORTO";
 export type StatusGestacao = "EM_ANDAMENTO" | "FINALIZADA";
 
 export type GestacaoApi = {
-  id: number;
-  doadoraId: number;
-  coberturaId: number;
+  id: number | string;
+  doadoraId: number | string | null;
+  coberturaId: number | string | null;
+  coberturaLocalId?: string | null;
   dataDiagnosticoInicial: string;
   resultado: ResultadoGestacao;
   status: StatusGestacao;
@@ -20,15 +21,17 @@ export type GestacaoApi = {
 };
 
 export type CheckupGestacionalApi = {
-  id: number;
-  gestacaoId?: number;
+  id: number | string;
+  gestacaoId?: number | string | null;
+  gestacaoLocalId?: string | null;
   dataHora: string;
   resultado: string;
   observacoes: string | null;
 };
 
 export type CriarGestacaoPayload = {
-  coberturaId: number;
+  coberturaId?: number | null;
+  coberturaLocalId?: string | null;
   dataDiagnosticoInicial: string;
   resultado: ResultadoGestacao;
   dataPrevisaoParto: string | null;
@@ -104,6 +107,7 @@ export const gestacaoService = {
   criarGestacao(payload: CriarGestacaoPayload) {
     const body: CriarGestacaoPayload = {
       coberturaId: payload.coberturaId,
+      coberturaLocalId: payload.coberturaLocalId,
       dataDiagnosticoInicial: payload.dataDiagnosticoInicial,
       resultado: payload.resultado,
       dataPrevisaoParto: payload.dataPrevisaoParto,
@@ -117,7 +121,7 @@ export const gestacaoService = {
     return gestacaoRepository.update(id, payload, "PATCH");
   },
 
-  async listarCheckups(gestacaoId: number) {
+  async listarCheckups(gestacaoId: number | string) {
     return checkupRepository.listByGestacao(gestacaoId);
   },
 
@@ -125,7 +129,7 @@ export const gestacaoService = {
     return checkupRepository.listPage(params);
   },
 
-  criarCheckup(gestacaoId: number, payload: CriarCheckupPayload) {
+  criarCheckup(gestacaoId: number | string, payload: CriarCheckupPayload) {
     return checkupRepository.create(gestacaoId, payload);
   },
 

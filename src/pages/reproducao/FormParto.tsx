@@ -18,6 +18,7 @@ import {
   type TipoParto,
 } from "@/services/partoService";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
+import { isLocalReference } from "@/lib/offlineIdentity";
 import { toast } from "sonner";
 
 const tipoPartoOptions: Array<{ value: TipoParto; label: string }> = [
@@ -181,8 +182,10 @@ export default function FormParto() {
   };
 
   const buildCreatePayload = (): CriarPartoPayload => ({
-    gestacaoId: Number(form.gestacaoId),
-    propriedadeId: Number(form.propriedadeId),
+    gestacaoId: isLocalReference(form.gestacaoId) ? null : Number(form.gestacaoId),
+    gestacaoLocalId: isLocalReference(form.gestacaoId) ? form.gestacaoId : null,
+    propriedadeId: isLocalReference(form.propriedadeId) ? null : Number(form.propriedadeId),
+    propriedadeLocalId: isLocalReference(form.propriedadeId) ? form.propriedadeId : null,
     dataHora: toBackendDateTime(form.dataHora),
     tipoParto: form.tipoParto,
     resultadoParto: form.resultadoParto,

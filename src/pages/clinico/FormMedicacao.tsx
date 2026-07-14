@@ -117,7 +117,7 @@ export default function FormMedicacao() {
     setIsSubmitting(true);
 
     try {
-      await clinicoService.registrarMedicacao(Number(form.atendimentoId), buildPayload());
+      await clinicoService.registrarMedicacao(form.atendimentoId, buildPayload());
       toast.success("Medicacao registrada");
       setForm(initialForm);
       navigate("/clinico/medicacoes");

@@ -1,5 +1,7 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type ApiError, type PageResponse } from "@/lib/api";
 import { localDb, type LocalRecord, type SyncEntity, type SyncOperation, type SyncQueueItem } from "@/lib/db/localDb";
+import { getNetworkStatus } from "@/lib/networkStatus";
+import { stripOfflineFields, withLocalIdAsTemporaryId } from "@/lib/offlineIdentity";
 
 type TableName = SyncEntity;
 
@@ -12,10 +14,12 @@ type RepositoryConfig<T extends object, CreatePayload extends object = Record<st
   buildUpdatePath?: (id: number | string, payload: Partial<T>) => string;
   buildDetailPath?: (id: number | string) => string;
   getLocalCreateData?: (payload: CreatePayload) => Partial<T>;
+  shouldQueueCreate?: (payload: CreatePayload) => boolean;
+  sanitizePayload?: (payload: Record<string, unknown>) => Record<string, unknown>;
 };
 
 export function isOnline() {
-  return typeof navigator === "undefined" ? true : navigator.onLine;
+  return getNetworkStatus();
 }
 
 export function newLocalId() {
@@ -72,6 +76,9 @@ function matchesParams(record: object, params?: Record<string, unknown>) {
 
   return Object.entries(params).every(([key, filterValue]) => {
     if (filterValue === undefined || filterValue === null || filterValue === "" || ["page", "size", "sort"].includes(key)) return true;
+    if (key === "idPropriedade") {
+      return [recordValue.propriedadeId, recordValue.propriedadeLocalId].some((value) => String(value ?? "") === String(filterValue));
+    }
     return String(recordValue[key] ?? "") === String(filterValue);
   });
 }
@@ -93,6 +100,30 @@ export async function saveRemoteList<T extends object>(entity: TableName, record
 export async function listLocal<T extends object>(entity: TableName, params?: Record<string, unknown>) {
   const records = await table<T>(entity).orderBy("updatedAt").reverse().toArray();
   return records.filter((record) => matchesParams(record, params)).map(stripLocalFields);
+}
+
+async function mergePendingLocal<T extends object>(entity: TableName, remoteRecords: T[], params?: Record<string, unknown>) {
+  const pending = (await table<T>(entity)
+    .where("syncStatus")
+    .anyOf(["PENDING", "ERROR"])
+    .toArray())
+    .filter((record) => matchesParams(record, params))
+    .map(stripLocalFields);
+
+  const remoteKeys = new Set(
+    remoteRecords.map((record) => {
+      const value = record as Record<string, unknown>;
+      return String(value.serverId ?? value.id ?? "");
+    })
+  );
+
+  return [
+    ...pending.filter((record) => {
+      const value = record as Record<string, unknown>;
+      return !remoteKeys.has(String(value.serverId ?? value.id ?? ""));
+    }),
+    ...remoteRecords,
+  ];
 }
 
 export async function getLocalById<T extends object>(entity: TableName, id: number | string) {
@@ -132,7 +163,7 @@ export async function queueCreate<T extends object>(
   const localId = newLocalId();
   const localRecord = toLocalRecord(
     {
-      id: newTempId(),
+      id: localId,
       ...payload,
       ...localData,
     } as unknown as T,
@@ -140,6 +171,7 @@ export async function queueCreate<T extends object>(
     true
   );
   localRecord.localId = localId;
+  withLocalIdAsTemporaryId(localRecord);
   await table<T>(entity).put(localRecord);
   await enqueue(entity, "CREATE", localId, endpoint, "POST", payload);
   return stripLocalFields(localRecord);
@@ -176,6 +208,14 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
   config: RepositoryConfig<T, CreatePayload>
 ) {
   const listPath = config.listPath ?? config.basePath;
+  const sanitizePayload = config.sanitizePayload ?? stripOfflineFields;
+  const buildQueuedPayload = (payload: CreatePayload | Partial<T>) => {
+    const raw = payload as Record<string, unknown>;
+    return {
+      ...sanitizePayload(raw),
+      ...Object.fromEntries(Object.entries(raw).filter(([key]) => key.endsWith("LocalId"))),
+    };
+  };
 
   return {
     async list(params?: Record<string, unknown>) {
@@ -184,7 +224,7 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
           const response = await apiRequest<T[] | PageResponse<T>>(`${listPath}${buildQueryString(params)}`);
           const content = unwrapPageContent(response);
           await saveRemoteList(config.entity, content);
-          return content;
+          return mergePendingLocal(config.entity, content, params);
         } catch (error) {
           if (isAuthError(error)) throw error;
           return listLocal<T>(config.entity, params);
@@ -200,7 +240,8 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
           const response = await apiRequest<T[] | PageResponse<T>>(`${listPath}${buildQueryString(params)}`);
           const content = unwrapPageContent(response);
           await saveRemoteList(config.entity, content);
-          return normalizePageResponse(response, Number(params?.page ?? 0), Number(params?.size ?? 10));
+          const merged = await mergePendingLocal(config.entity, content, params);
+          return normalizePageResponse(merged, Number(params?.page ?? 0), Number(params?.size ?? 10));
         } catch (error) {
           if (isAuthError(error)) throw error;
         }
@@ -229,12 +270,12 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
     async create(payload: CreatePayload) {
       const endpoint = config.buildCreatePath?.(payload) ?? config.createPath ?? config.basePath;
 
-      if (isOnline()) {
+      if (isOnline() && !config.shouldQueueCreate?.(payload)) {
         try {
           const response = await apiRequest<T>(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(sanitizePayload(payload as Record<string, unknown>)),
           });
           await saveRemoteList(config.entity, [response]);
           return response;
@@ -243,7 +284,7 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
         }
       }
 
-      return queueCreate<T>(config.entity, endpoint, payload as Record<string, unknown>, config.getLocalCreateData?.(payload));
+      return queueCreate<T>(config.entity, endpoint, buildQueuedPayload(payload), config.getLocalCreateData?.(payload));
     },
 
     async update(id: number | string, payload: Partial<T>, method: SyncQueueItem["method"] = "PUT") {
@@ -254,7 +295,7 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
           const response = await apiRequest<T>(endpoint, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(sanitizePayload(payload as Record<string, unknown>)),
           });
           await saveRemoteList(config.entity, [response]);
           return response;
@@ -263,7 +304,7 @@ export function createOfflineRepository<T extends object, CreatePayload extends 
         }
       }
 
-      return queueUpdate<T>(config.entity, id, endpoint, payload as Record<string, unknown>, method);
+      return queueUpdate<T>(config.entity, id, endpoint, buildQueuedPayload(payload), method);
     },
   };
 }

@@ -1,9 +1,18 @@
 import { createOfflineRepository, listLocal, queueCreate, saveRemoteList, isOnline } from "@/repositories/offlineRepository";
 import { apiRequest, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
+import { isLocalReference } from "@/lib/offlineIdentity";
+import { enumMappers } from "@/lib/enumMappers";
 import type { MedicacaoApi, MedicacaoPayload } from "@/services/clinicoService";
 
+function sanitizeMedicacaoPayload(payload: MedicacaoPayload) {
+  return {
+    ...payload,
+    viaAdministracao: enumMappers.viaAdministracao(payload.viaAdministracao),
+  };
+}
+
 export const medicacaoRepository = {
-  async listByAtendimento(atendimentoId: number) {
+  async listByAtendimento(atendimentoId: number | string) {
     if (isOnline()) {
       try {
         const response = await apiRequest<MedicacaoApi[] | PageResponse<MedicacaoApi>>(
@@ -20,16 +29,17 @@ export const medicacaoRepository = {
     return listLocal<MedicacaoApi>("medicacoesAplicadas", { atendimentoId });
   },
 
-  async create(atendimentoId: number, payload: MedicacaoPayload) {
+  async create(atendimentoId: number | string, payload: MedicacaoPayload) {
     const endpoint = `/api/v1/atendimentos/${atendimentoId}/medicacoes`;
-    const body = { ...payload, atendimentoId };
+    const sanitizedPayload = sanitizeMedicacaoPayload(payload);
+    const body = { ...sanitizedPayload, atendimentoId: isLocalReference(atendimentoId) ? null : atendimentoId, atendimentoLocalId: isLocalReference(atendimentoId) ? atendimentoId : null };
 
-    if (isOnline() && atendimentoId > 0) {
+    if (isOnline() && Number(atendimentoId) > 0) {
       try {
         const response = await apiRequest<MedicacaoApi>(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(sanitizedPayload),
         });
         await saveRemoteList("medicacoesAplicadas", [{ ...response, atendimentoId }]);
         return response;
@@ -50,4 +60,10 @@ export const medicacaoRepository = {
 export const rawMedicacaoRepository = createOfflineRepository<MedicacaoApi, MedicacaoPayload>({
   entity: "medicacoesAplicadas",
   basePath: "/api/v1/medicacoes",
+  sanitizePayload: (payload) => ({
+    insumoId: payload.insumoId,
+    dose: payload.dose,
+    viaAdministracao: enumMappers.viaAdministracao(payload.viaAdministracao),
+    observacoes: payload.observacoes,
+  }),
 });

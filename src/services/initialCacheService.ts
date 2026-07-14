@@ -8,11 +8,12 @@ import { partoRepository } from "@/repositories/partoRepository";
 import { propriedadeRepository } from "@/repositories/propriedadeRepository";
 import { checkupRepository } from "@/repositories/checkupRepository";
 import { getAuthToken } from "@/lib/api";
+import { checkApiConnection } from "@/lib/networkStatus";
 
 let cachePromise: Promise<void> | null = null;
 
-export function warmInitialOfflineCache() {
-  if (!getAuthToken() || typeof navigator !== "undefined" && !navigator.onLine) return Promise.resolve();
+export async function warmInitialOfflineCache() {
+  if (!getAuthToken() || !(await checkApiConnection())) return;
   if (cachePromise) return cachePromise;
 
   cachePromise = Promise.allSettled([

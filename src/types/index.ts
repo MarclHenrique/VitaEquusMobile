@@ -1,7 +1,7 @@
 export interface Propriedade {
   id: string;
   nome: string;
-  tipo_propriedade: 'Haras' | 'Centro_de_Reproducao' | 'Fazenda';
+  tipo_propriedade: 'HARAS' | 'CENTRO_DE_REPRODUCAO' | 'FAZENDA' | 'Haras' | 'Centro_de_Reproducao' | 'Fazenda';
   endereco: string;
   cidade: string;
   estado: string;
@@ -31,7 +31,7 @@ export type SexoAnimal = "M" | "F";
 export type StatusAnimal = "ATIVO" | "VENDIDO" | "OBITO" | "ativo" | "vendido" | "obito";
 
 export interface Animal {
-  id: number;
+  id: number | string;
   identificacao: string | null;
   nome: string;
   categoria: CategoriaAnimal;
@@ -40,11 +40,15 @@ export interface Animal {
   racaId: number | null;
   nomeRaca: string | null;
   pelagem: string | null;
-  propriedadeId: number;
+  propriedadeId: number | string;
+  propriedadeLocalId?: string | null;
   nomePropriedade: string;
   status: StatusAnimal;
   biografia: string | null;
   urlFoto: string | null;
+  syncStatus?: "SYNCED" | "PENDING" | "ERROR" | string | null;
+  localId?: string | null;
+  serverId?: number | string | null;
 }
 
 export interface AnimalRequest {
@@ -55,7 +59,8 @@ export interface AnimalRequest {
   dataNascimento: string | null;
   racaId: number | null;
   pelagem: string;
-  propriedadeId: number;
+  propriedadeId?: number | null;
+  propriedadeLocalId?: string | null;
   proprietarioId: number | null;
   cuidadorPropriedadeId: number | null;
   status: StatusAnimal;

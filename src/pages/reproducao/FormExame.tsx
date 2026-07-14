@@ -18,6 +18,8 @@ import {
   type InsumoResumo,
 } from "@/services/exameReprodutivoService";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
+import { ANIMAL_PROPERTY_MESSAGE, filterAnimalsByProperty, hasAnimalInProperty } from "@/lib/animalProperty";
+import { isLocalReference } from "@/lib/offlineIdentity";
 import type { Animal } from "@/types";
 import { toast } from "sonner";
 
@@ -132,7 +134,10 @@ export default function FormExame() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const animaisElegiveis = useMemo(() => animais.filter(isEguaOuReceptora), [animais]);
+  const animaisElegiveis = useMemo(
+    () => filterAnimalsByProperty(animais.filter(isEguaOuReceptora), form.propriedadeId),
+    [animais, form.propriedadeId]
+  );
   const insumosOrdenados = useMemo(
     () => [...insumos].sort((a, b) => getInsumoNome(a).localeCompare(getInsumoNome(b))),
     [insumos]
@@ -175,11 +180,18 @@ export default function FormExame() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  useEffect(() => {
+    if (form.propriedadeId && form.animalId && !hasAnimalInProperty(animais, form.animalId, form.propriedadeId)) {
+      setForm((prev) => ({ ...prev, animalId: "" }));
+    }
+  }, [animais, form.animalId, form.propriedadeId]);
+
   const validate = () => {
     const diametro = Number(form.diametroFolicular);
 
     if (!form.animalId) return "Selecione uma egua/receptora.";
     if (!form.propriedadeId) return "Selecione uma propriedade.";
+    if (!hasAnimalInProperty(animais, form.animalId, form.propriedadeId)) return ANIMAL_PROPERTY_MESSAGE;
     if (!form.dataHora.trim()) return "Informe a data/hora.";
     if (!Number.isFinite(diametro) || diametro <= 0) return "Informe um diametro folicular positivo.";
 
@@ -187,8 +199,10 @@ export default function FormExame() {
   };
 
   const buildCreatePayload = (): CriarExameReprodutivoPayload => ({
-    animalId: Number(form.animalId),
-    propriedadeId: Number(form.propriedadeId),
+    animalId: isLocalReference(form.animalId) ? null : Number(form.animalId),
+    animalLocalId: isLocalReference(form.animalId) ? form.animalId : null,
+    propriedadeId: isLocalReference(form.propriedadeId) ? null : Number(form.propriedadeId),
+    propriedadeLocalId: isLocalReference(form.propriedadeId) ? form.propriedadeId : null,
     dataHora: toBackendDateTime(form.dataHora),
     diametroFolicular: Number(form.diametroFolicular),
     edemaUterino: form.edemaUterino,

@@ -17,6 +17,8 @@ import {
   type TipoAtendimento,
 } from "@/services/clinicoService";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
+import { ANIMAL_PROPERTY_MESSAGE, filterAnimalsByProperty, hasAnimalInProperty } from "@/lib/animalProperty";
+import { isLocalReference } from "@/lib/offlineIdentity";
 import { criarInsumoLookup, formatViaAdministracao, getInsumoNome } from "@/lib/medicacaoFormat";
 import type { Animal } from "@/types";
 import { toast } from "sonner";
@@ -109,6 +111,7 @@ export default function FormAtendimento() {
   const [insumos, setInsumos] = useState<InsumoResumo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const animaisDaPropriedade = filterAnimalsByProperty(animais, form.propriedadeId);
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -150,9 +153,16 @@ export default function FormAtendimento() {
   };
   const insumosById = criarInsumoLookup(insumos);
 
+  useEffect(() => {
+    if (form.propriedadeId && form.animalId && !hasAnimalInProperty(animais, form.animalId, form.propriedadeId)) {
+      setForm((prev) => ({ ...prev, animalId: "" }));
+    }
+  }, [animais, form.animalId, form.propriedadeId]);
+
   const validate = () => {
     if (!form.animalId) return "Selecione um animal.";
     if (!form.propriedadeId) return "Selecione uma propriedade.";
+    if (!hasAnimalInProperty(animais, form.animalId, form.propriedadeId)) return ANIMAL_PROPERTY_MESSAGE;
     if (!form.tipoAtendimento) return "Selecione o tipo de atendimento.";
     if (!form.queixaPrincipal.trim()) return "Informe a queixa principal.";
     if (!form.diagnosticoPresuntivo.trim()) return "Informe o diagnostico presuntivo.";
@@ -162,8 +172,10 @@ export default function FormAtendimento() {
   };
 
   const buildPayload = (): AtendimentoPayload => ({
-    animalId: Number(form.animalId),
-    propriedadeId: Number(form.propriedadeId),
+    animalId: isLocalReference(form.animalId) ? null : Number(form.animalId),
+    animalLocalId: isLocalReference(form.animalId) ? form.animalId : null,
+    propriedadeId: isLocalReference(form.propriedadeId) ? null : Number(form.propriedadeId),
+    propriedadeLocalId: isLocalReference(form.propriedadeId) ? form.propriedadeId : null,
     dataHora: toBackendDateTime(form.dataHora),
     tipoAtendimento: form.tipoAtendimento,
     queixaPrincipal: form.queixaPrincipal.trim(),
@@ -217,7 +229,7 @@ export default function FormAtendimento() {
             <Select value={form.animalId} onValueChange={(value) => set("animalId", value)}>
               <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
               <SelectContent>
-                {animais.map((animal) => (
+                {animaisDaPropriedade.map((animal) => (
                   <SelectItem key={animal.id} value={String(animal.id)}>
                     {animal.nome} {animal.identificacao ? `(${animal.identificacao})` : ""}
                   </SelectItem>

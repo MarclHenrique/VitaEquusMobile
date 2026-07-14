@@ -11,12 +11,13 @@ import { propriedadeService, type PropriedadeResumo } from "@/services/proprieda
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
 import type { Animal, AnimalRequest, CategoriaAnimal, Raca, SexoAnimal, StatusAnimal } from "@/types";
 import { toast } from "sonner";
+import { isLocalReference } from "@/lib/offlineIdentity";
 
 const categorias: Array<{ value: CategoriaAnimal; label: string }> = [
-  { value: "Garanhao", label: "Garanhão" },
-  { value: "Egua", label: "Égua" },
-  { value: "Potro", label: "Potro" },
-  { value: "Receptora", label: "Receptora" },
+  { value: "GARANHAO", label: "Garanhão" },
+  { value: "EGUA", label: "Égua" },
+  { value: "POTRO", label: "Potro" },
+  { value: "RECEPTORA", label: "Receptora" },
 ];
 
 const sexos: Array<{ value: SexoAnimal; label: string }> = [
@@ -48,7 +49,7 @@ type FormState = {
 const initialForm: FormState = {
   nome: "",
   identificacao: "",
-  categoria: "Egua",
+  categoria: "EGUA",
   sexo: "F",
   dataNascimento: "",
   racaId: "none",
@@ -80,8 +81,8 @@ function toBackendDate(value: string) {
 }
 
 function getSuggestedSexo(categoria: CategoriaAnimal, currentSexo: SexoAnimal) {
-  if (categoria === "Garanhao") return "M";
-  if (categoria === "Egua" || categoria === "Receptora") return "F";
+  if (categoria === "GARANHAO" || categoria === "Garanhao") return "M";
+  if (categoria === "EGUA" || categoria === "Egua" || categoria === "RECEPTORA" || categoria === "Receptora") return "F";
   return currentSexo;
 }
 
@@ -133,7 +134,7 @@ export default function FormAnimal() {
       racaService.listarRacas(),
       propriedadeService.listarPropriedadesResumo(),
       animalService.listarAnimais(),
-      isEditing && id ? animalService.buscarAnimal(Number(id)) : Promise.resolve(null),
+      isEditing && id ? animalService.buscarAnimal(id) : Promise.resolve(null),
     ])
       .then(([racasData, propriedadesData, animaisData, animalData]) => {
         setRacas(racasData);
@@ -173,7 +174,8 @@ export default function FormAnimal() {
     dataNascimento: toBackendDate(form.dataNascimento),
     racaId: form.racaId === "none" ? null : Number(form.racaId),
     pelagem: form.pelagem.trim(),
-    propriedadeId: Number(form.propriedadeId),
+    propriedadeId: isLocalReference(form.propriedadeId) ? null : Number(form.propriedadeId),
+    propriedadeLocalId: isLocalReference(form.propriedadeId) ? form.propriedadeId : null,
     proprietarioId: null,
     cuidadorPropriedadeId: null,
     status: form.status,
@@ -194,7 +196,7 @@ export default function FormAnimal() {
       const payload = buildPayload();
 
       if (isEditing && id) {
-        await animalService.atualizarAnimal(Number(id), payload);
+        await animalService.atualizarAnimal(id, payload);
         toast.success("Animal atualizado");
       } else {
         await animalService.criarAnimal(payload);

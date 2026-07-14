@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getAuthToken } from "@/lib/api";
+import { enumMappers } from "@/lib/enumMappers";
 import { propriedadeService } from "@/services/propriedadeService";
 import type { Propriedade } from "@/types";
 import { toast } from "sonner";
@@ -21,6 +22,12 @@ type PropriedadeApi = {
   email?: string;
 };
 
+const tipoPropriedadeOptions: Array<{ value: Propriedade["tipo_propriedade"]; label: string }> = [
+  { value: "HARAS", label: "Haras" },
+  { value: "CENTRO_DE_REPRODUCAO", label: "Centro de Reproducao" },
+  { value: "FAZENDA", label: "Fazenda" },
+];
+
 export default function FormPropriedade() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -29,7 +36,7 @@ export default function FormPropriedade() {
 
   const [form, setForm] = useState<Omit<Propriedade, "id">>({
     nome: "",
-    tipo_propriedade: "Haras",
+    tipo_propriedade: "HARAS",
     endereco: "",
     cidade: "",
     estado: "",
@@ -50,7 +57,7 @@ export default function FormPropriedade() {
       .then((propriedade) => {
         setForm({
           nome: propriedade.nome,
-          tipo_propriedade: (propriedade.tipoPropriedade ?? "Haras") as Propriedade["tipo_propriedade"],
+          tipo_propriedade: enumMappers.tipoPropriedade(propriedade.tipoPropriedade ?? "HARAS") as Propriedade["tipo_propriedade"],
           endereco: propriedade.endereco ?? "",
           cidade: propriedade.cidade ?? "",
           estado: propriedade.estado ?? "",
@@ -123,9 +130,9 @@ export default function FormPropriedade() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Haras">Haras</SelectItem>
-              <SelectItem value="Centro_de_Reproducao">Centro de Reproducao</SelectItem>
-              <SelectItem value="Fazenda">Fazenda</SelectItem>
+              {tipoPropriedadeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

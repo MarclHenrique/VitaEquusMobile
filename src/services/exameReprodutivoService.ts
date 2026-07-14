@@ -17,9 +17,11 @@ export type CorpoLuteo =
   | "AMBOS";
 
 export type ExameReprodutivoApi = {
-  id: number;
-  animalId: number;
-  propriedadeId: number;
+  id: number | string;
+  animalId: number | string | null;
+  animalLocalId?: string | null;
+  propriedadeId: number | string | null;
+  propriedadeLocalId?: string | null;
   dataHora: string;
   diametroFolicular: number;
   edemaUterino: EdemaUterino;
@@ -32,8 +34,10 @@ export type ExameReprodutivoApi = {
 };
 
 export type CriarExameReprodutivoPayload = {
-  animalId: number;
-  propriedadeId: number;
+  animalId?: number | null;
+  animalLocalId?: string | null;
+  propriedadeId?: number | null;
+  propriedadeLocalId?: string | null;
   dataHora: string;
   diametroFolicular: number;
   edemaUterino: EdemaUterino;

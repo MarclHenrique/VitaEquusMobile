@@ -81,7 +81,7 @@ export default function Prontuario() {
                 <p className="text-sm font-semibold text-foreground truncate">
                   {atendimento.animalNome ?? `Animal #${atendimento.animalId}`}
                 </p>
-                <RecordSyncBadge status={(atendimento as any).syncStatus} />
+                <RecordSyncBadge status={(atendimento as { syncStatus?: string | null }).syncStatus} />
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
                   {tipoLabels[atendimento.tipoAtendimento] ?? atendimento.tipoAtendimento}
                 </span>

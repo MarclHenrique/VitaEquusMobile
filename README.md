@@ -48,7 +48,7 @@ npm run dev
 ```
 
 ### 3. Acessando a Aplicação
-Abra o seu navegador e acesse a URL que aparecerá no terminal (por padrão: `http://localhost:8080`). O Vite possibilita _Hot Module Replacement_ (HMR), então qualquer alteração no código refletirá instantaneamente na tela!
+Abra o seu navegador e acesse a URL que aparecerá no terminal. O Vite possibilita _Hot Module Replacement_ (HMR), então qualquer alteração no código refletirá instantaneamente na tela!
 
 ---
 *Desenvolvido para oferecer a mais alta performance e melhor experiência na gestão de haras e da clínica veterinária equina.*

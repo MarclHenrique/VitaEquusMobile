@@ -15,6 +15,7 @@ import {
   type ResultadoGestacao,
 } from "@/services/gestacaoService";
 import { getApiErrorMessage, getAuthToken } from "@/lib/api";
+import { isLocalReference } from "@/lib/offlineIdentity";
 import type { Animal } from "@/types";
 import { toast } from "sonner";
 
@@ -161,7 +162,8 @@ export default function FormGestacao() {
   };
 
   const buildPayload = (): CriarGestacaoPayload => ({
-    coberturaId: Number(form.coberturaId),
+    coberturaId: isLocalReference(form.coberturaId) ? null : Number(form.coberturaId),
+    coberturaLocalId: isLocalReference(form.coberturaId) ? form.coberturaId : null,
     dataDiagnosticoInicial: toBackendDate(form.dataDiagnosticoInicial),
     resultado: form.resultado,
     dataPrevisaoParto: form.resultado === "PRENHE" ? toBackendDate(form.dataPrevisaoParto) : null,

@@ -5,7 +5,7 @@ import { animalRepository } from "@/repositories/animalRepository";
 type ListarAnimaisParams = {
   categoria?: CategoriaAnimal;
   status?: StatusAnimal;
-  idPropriedade?: number;
+  idPropriedade?: number | string;
   page?: number;
   size?: number;
   sort?: string;
@@ -62,11 +62,11 @@ export const animalService = {
     return animalRepository.create(normalizePayload(payload));
   },
 
-  atualizarAnimal(id: number, payload: AnimalRequest) {
+  atualizarAnimal(id: number | string, payload: AnimalRequest) {
     return animalRepository.update(id, normalizePayload(payload));
   },
 
-  buscarAnimal(id: number) {
+  buscarAnimal(id: number | string) {
     return animalRepository.get(id);
   },
 };

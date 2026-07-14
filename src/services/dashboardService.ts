@@ -1,5 +1,6 @@
 import { apiRequest } from "@/lib/api";
 import { localDb } from "@/lib/db/localDb";
+import { getNetworkStatus } from "@/lib/networkStatus";
 
 type DashboardMetric = {
   total?: number | null;
@@ -20,7 +21,7 @@ export type DashboardResponse = {
 
 export const dashboardService = {
   async buscarDashboard() {
-    if (typeof navigator === "undefined" || navigator.onLine) {
+    if (getNetworkStatus()) {
       try {
         return await apiRequest<DashboardResponse>("/api/v1/dashboard");
       } catch {

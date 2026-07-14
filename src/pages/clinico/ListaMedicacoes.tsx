@@ -94,7 +94,7 @@ export default function ListaMedicacoes() {
                   <p className="text-sm font-semibold text-foreground">
                     {atendimento.animalNome ?? `Animal #${atendimento.animalId}`}
                   </p>
-                  <RecordSyncBadge status={(medicacao as any).syncStatus} />
+                  <RecordSyncBadge status={(medicacao as { syncStatus?: string | null }).syncStatus} />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {getInsumoNome(medicacao, insumosById)} - {medicacao.dose} - {formatViaAdministracao(medicacao.viaAdministracao)}

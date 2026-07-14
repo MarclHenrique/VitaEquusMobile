@@ -68,6 +68,20 @@ class VitaEquusLocalDb extends Dexie {
       partos: "localId, serverId, syncStatus, createdOffline, updatedAt, gestacaoId, propriedadeId",
       syncQueue: "++id, entity, localId, serverId, status, createdAt",
     });
+
+    this.version(2).stores({
+      propriedades: "localId, serverId, syncStatus, createdOffline, updatedAt",
+      animais: "localId, serverId, syncStatus, createdOffline, updatedAt, propriedadeId, propriedadeLocalId",
+      insumos: "localId, serverId, syncStatus, createdOffline, updatedAt",
+      atendimentos: "localId, serverId, syncStatus, createdOffline, updatedAt, animalId, propriedadeId, animalLocalId, propriedadeLocalId",
+      medicacoesAplicadas: "localId, serverId, syncStatus, createdOffline, updatedAt, atendimentoId, atendimentoLocalId, insumoId",
+      examesReprodutivos: "localId, serverId, syncStatus, createdOffline, updatedAt, animalId, propriedadeId, animalLocalId, propriedadeLocalId",
+      coberturas: "localId, serverId, syncStatus, createdOffline, updatedAt, propriedadeId, propriedadeLocalId",
+      gestacoes: "localId, serverId, syncStatus, createdOffline, updatedAt, coberturaId, coberturaLocalId, status, resultado",
+      checkupsGestacionais: "localId, serverId, syncStatus, createdOffline, updatedAt, gestacaoId, gestacaoLocalId",
+      partos: "localId, serverId, syncStatus, createdOffline, updatedAt, gestacaoId, gestacaoLocalId, propriedadeId, propriedadeLocalId",
+      syncQueue: "++id, entity, localId, serverId, status, createdAt",
+    });
   }
 }
 

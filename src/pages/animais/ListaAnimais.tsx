@@ -63,12 +63,12 @@ export default function ListaAnimais() {
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState<CategoriaAnimal | "">("");
   const [filterStatus, setFilterStatus] = useState<StatusAnimal | "">("");
-  const [filterProp, setFilterProp] = useState<number | "all">("all");
+  const [filterProp, setFilterProp] = useState<number | string | "all">("all");
   const [openProp, setOpenProp] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [failedPhotoIds, setFailedPhotoIds] = useState<Set<number>>(new Set());
+  const [failedPhotoIds, setFailedPhotoIds] = useState<Set<number | string>>(new Set());
 
   const carregarAnimais = useCallback(async () => {
     if (!getAuthToken()) {
@@ -299,7 +299,7 @@ export default function ListaAnimais() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-foreground truncate">{animal.nome}</p>
-                          <RecordSyncBadge status={(animal as any).syncStatus} />
+                          <RecordSyncBadge status={animal.syncStatus} />
                           <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", categoriaColors[animal.categoria])}>
                             {categoriaLabel(animal.categoria)}
                           </span>

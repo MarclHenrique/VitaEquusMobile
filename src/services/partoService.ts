@@ -2,6 +2,7 @@ import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent,
 import type { ResultadoGestacao, StatusGestacao } from "@/services/gestacaoService";
 import { gestacaoRepository } from "@/repositories/gestacaoRepository";
 import { partoRepository } from "@/repositories/partoRepository";
+import { getRecordId } from "@/lib/offlineIdentity";
 
 export type TipoParto = "NORMAL" | "DISTOCICO" | "CESARIANA";
 export type ResultadoParto = "VIVO" | "MORTO";
@@ -10,9 +11,11 @@ export type ResultadoPotro = "VIVO" | "MORTO" | "NATIMORTO";
 export type CondicaoNeonato = "NORMAL" | "FRACO" | "EM_OBSERVACAO" | "CRITICO";
 
 export type PartoApi = {
-  id: number;
-  gestacaoId: number;
-  propriedadeId: number;
+  id: number | string;
+  gestacaoId: number | string | null;
+  gestacaoLocalId?: string | null;
+  propriedadeId: number | string | null;
+  propriedadeLocalId?: string | null;
   dataHora: string;
   tipoParto: TipoParto;
   resultadoParto: ResultadoParto;
@@ -38,9 +41,11 @@ export type PotroApi = {
 };
 
 export type GestacaoResumo = {
-  id: number;
+  id: number | string;
   doadoraAnimalId?: number | null;
-  doadoraId?: number | null;
+  doadoraId?: number | string | null;
+  coberturaId?: number | string | null;
+  coberturaLocalId?: string | null;
   doadoraNome?: string | null;
   animalNome?: string | null;
   dataDiagnosticoInicial?: string | null;
@@ -50,8 +55,10 @@ export type GestacaoResumo = {
 };
 
 export type CriarPartoPayload = {
-  gestacaoId: number;
-  propriedadeId: number;
+  gestacaoId?: number | null;
+  gestacaoLocalId?: string | null;
+  propriedadeId?: number | null;
+  propriedadeLocalId?: string | null;
   dataHora: string;
   tipoParto: TipoParto;
   resultadoParto: ResultadoParto;
@@ -153,7 +160,7 @@ export const partoService = {
     const response = await gestacaoRepository.list(params as Record<string, unknown>);
     return response.map((gestacao) => ({
       ...gestacao,
-      id: Number(gestacao.id),
+      id: getRecordId(gestacao as unknown as Record<string, unknown>),
     }));
   },
 };

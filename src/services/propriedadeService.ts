@@ -1,9 +1,13 @@
 import { apiRequest, buildQueryString, normalizePageResponse, type PageResponse } from "@/lib/api";
 import { propriedadeRepository } from "@/repositories/propriedadeRepository";
+import { getRecordId, getSelectLabel } from "@/lib/offlineIdentity";
 
 export type PropriedadeResumo = {
-  id: number;
+  id: number | string;
   nome: string;
+  syncStatus?: string;
+  localId?: string;
+  serverId?: number | string | null;
 };
 
 export type PropriedadeApi = {
@@ -67,8 +71,11 @@ export const propriedadeService = {
     const page = await this.listarPropriedades(params);
 
     return page.content.map((propriedade) => ({
-      id: Number(propriedade.id),
-      nome: propriedade.nome,
+      id: getRecordId(propriedade as unknown as Record<string, unknown>),
+      nome: getSelectLabel(propriedade as unknown as Record<string, unknown>, propriedade.nome),
+      syncStatus: propriedade.syncStatus,
+      localId: propriedade.localId,
+      serverId: propriedade.serverId,
     }));
   },
 

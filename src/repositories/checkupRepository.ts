@@ -1,9 +1,10 @@
 import { apiRequest, buildQueryString, normalizePageResponse, unwrapPageContent, type PageResponse } from "@/lib/api";
 import type { CheckupGestacionalApi, CriarCheckupPayload, ListarCheckupsParams } from "@/services/gestacaoService";
 import { isOnline, listLocal, queueCreate, queueUpdate, saveRemoteList } from "@/repositories/offlineRepository";
+import { isLocalReference } from "@/lib/offlineIdentity";
 
 export const checkupRepository = {
-  async listByGestacao(gestacaoId: number) {
+  async listByGestacao(gestacaoId: number | string) {
     if (isOnline()) {
       try {
         const response = await apiRequest<CheckupGestacionalApi[] | PageResponse<CheckupGestacionalApi>>(
@@ -38,8 +39,8 @@ export const checkupRepository = {
     return normalizePageResponse(content, params?.page ?? 0, params?.size ?? 10);
   },
 
-  async create(gestacaoId: number, payload: CriarCheckupPayload) {
-    if (isOnline() && gestacaoId > 0) {
+  async create(gestacaoId: number | string, payload: CriarCheckupPayload) {
+    if (isOnline() && Number(gestacaoId) > 0) {
       try {
         const response = await apiRequest<CheckupGestacionalApi>(`/api/v1/gestacoes/${gestacaoId}/checkups`, {
           method: "POST",
@@ -56,8 +57,8 @@ export const checkupRepository = {
     return queueCreate<CheckupGestacionalApi>(
       "checkupsGestacionais",
       `/api/v1/gestacoes/${gestacaoId}/checkups`,
-      { ...payload, gestacaoId },
-      { gestacaoId }
+      { ...payload, gestacaoId: isLocalReference(gestacaoId) ? null : gestacaoId, gestacaoLocalId: isLocalReference(gestacaoId) ? gestacaoId : null },
+      { gestacaoId: isLocalReference(gestacaoId) ? null : gestacaoId, gestacaoLocalId: isLocalReference(gestacaoId) ? gestacaoId : null } as Partial<CheckupGestacionalApi>
     );
   },
 

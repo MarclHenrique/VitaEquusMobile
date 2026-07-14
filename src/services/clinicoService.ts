@@ -16,9 +16,11 @@ export type ViaAdministracao =
   | "SUBCUTANEA";
 
 export type AtendimentoClinicoApi = {
-  id: number;
-  animalId: number;
-  propriedadeId: number;
+  id: number | string;
+  animalId: number | string | null;
+  animalLocalId?: string | null;
+  propriedadeId: number | string | null;
+  propriedadeLocalId?: string | null;
   dataHora: string;
   tipoAtendimento: TipoAtendimento;
   queixaPrincipal: string;
@@ -29,8 +31,10 @@ export type AtendimentoClinicoApi = {
 };
 
 export type AtendimentoPayload = {
-  animalId: number;
-  propriedadeId: number;
+  animalId?: number | null;
+  animalLocalId?: string | null;
+  propriedadeId?: number | null;
+  propriedadeLocalId?: string | null;
   dataHora: string;
   tipoAtendimento: TipoAtendimento;
   queixaPrincipal: string;
@@ -39,8 +43,9 @@ export type AtendimentoPayload = {
 };
 
 export type MedicacaoApi = {
-  id: number;
-  atendimentoId?: number;
+  id: number | string;
+  atendimentoId?: number | string | null;
+  atendimentoLocalId?: string | null;
   insumoId: number;
   dose: string;
   viaAdministracao: ViaAdministracao;
@@ -111,11 +116,11 @@ export const clinicoService = {
     return atendimentoRepository.update(id, payload);
   },
 
-  async listarMedicacoes(atendimentoId: number) {
+  async listarMedicacoes(atendimentoId: number | string) {
     return medicacaoRepository.listByAtendimento(atendimentoId);
   },
 
-  registrarMedicacao(atendimentoId: number, payload: MedicacaoPayload) {
+  registrarMedicacao(atendimentoId: number | string, payload: MedicacaoPayload) {
     return medicacaoRepository.create(atendimentoId, payload);
   },
 

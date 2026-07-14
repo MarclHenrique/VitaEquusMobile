@@ -10,13 +10,14 @@ import type { Propriedade } from "@/types";
 import { Button } from "@/components/ui/button";
 import { RecordSyncBadge } from "@/components/RecordSyncBadge";
 import { toast } from "sonner";
+import { getRecordId } from "@/lib/offlineIdentity";
 
 const PAGE_SIZE = 8;
 const DEFAULT_SORT = "nome,asc";
 
 function toPropriedade(api: PropriedadeApi): Propriedade {
   return {
-    id: String(api.id),
+    id: getRecordId(api as unknown as Record<string, unknown>),
     nome: api.nome,
     tipo_propriedade: (api.tipoPropriedade ?? "HARAS") as Propriedade["tipo_propriedade"],
     endereco: api.endereco ?? "",
@@ -106,7 +107,7 @@ export default function ListaPropriedades() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-foreground truncate">{p.nome}</p>
-                    <RecordSyncBadge status={(propriedadesApi.find((item) => String(item.id) === p.id) as any)?.syncStatus} />
+                    <RecordSyncBadge status={propriedadesApi.find((item) => getRecordId(item as unknown as Record<string, unknown>) === p.id)?.syncStatus} />
                   </div>
                   <p className="text-xs text-muted-foreground">{labelTipoPropriedade(p.tipo_propriedade)}</p>
                   <div className="flex items-center gap-1 mt-1">

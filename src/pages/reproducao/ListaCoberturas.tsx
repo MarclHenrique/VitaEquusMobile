@@ -221,7 +221,7 @@ export default function ListaCoberturas() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {(cobertura.doadoraNome ?? `Doadora #${cobertura.doadoraAnimalId}`)} x {(cobertura.produtorNome ?? `Produtor #${cobertura.produtorAnimalId}`)}
                   </p>
-                  <RecordSyncBadge status={(cobertura as any).syncStatus} />
+                  <RecordSyncBadge status={(cobertura as { syncStatus?: string | null }).syncStatus} />
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-medium shrink-0">
                     {procedimentoLabels[cobertura.tipoProcedimento] ?? cobertura.tipoProcedimento}
                   </span>

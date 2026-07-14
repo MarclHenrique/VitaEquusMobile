@@ -1,17 +1,31 @@
 import { useEffect, useState } from "react";
+import { checkApiConnection, getNetworkStatus, markNetworkOffline, subscribeNetworkStatus } from "@/lib/networkStatus";
 
 export function useNetworkStatus() {
-  const [isOnline, setIsOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
+  const [isOnline, setIsOnline] = useState(() => getNetworkStatus());
 
   useEffect(() => {
-    const update = () => setIsOnline(navigator.onLine);
+    const unsubscribe = subscribeNetworkStatus(setIsOnline);
+    const updateOnline = () => {
+      void checkApiConnection({ force: true });
+    };
+    const updateOffline = () => {
+      markNetworkOffline();
+    };
 
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
+    void checkApiConnection({ force: true });
+    const interval = window.setInterval(() => {
+      void checkApiConnection();
+    }, 30000);
+
+    window.addEventListener("online", updateOnline);
+    window.addEventListener("offline", updateOffline);
 
     return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
+      unsubscribe();
+      window.clearInterval(interval);
+      window.removeEventListener("online", updateOnline);
+      window.removeEventListener("offline", updateOffline);
     };
   }, []);
 

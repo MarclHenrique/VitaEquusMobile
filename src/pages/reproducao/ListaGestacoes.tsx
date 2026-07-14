@@ -263,7 +263,7 @@ export default function ListaGestacoes() {
                   <div className="flex items-center justify-between mb-1 gap-2">
                     <p className="text-sm font-semibold text-foreground truncate">{getDoadoraLabel(gestacao)}</p>
                     <div className="flex items-center gap-1 shrink-0">
-                      <RecordSyncBadge status={(gestacao as any).syncStatus} />
+                      <RecordSyncBadge status={(gestacao as { syncStatus?: string | null }).syncStatus} />
                       <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", resultadoColors[gestacao.resultado])}>
                         {resultadoLabels[gestacao.resultado] ?? gestacao.resultado}
                       </span>

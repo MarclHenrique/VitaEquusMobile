@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { clearAuthSession, SESSION_EXPIRED_MESSAGE, SESSION_EXPIRED_STORAGE_KEY } from "@/lib/authSession";
+import { markNetworkOffline, markNetworkOnline } from "@/lib/networkStatus";
 
 export class ApiError extends Error {
   status: number;
@@ -21,8 +22,19 @@ export type PageResponse<T> = {
   first?: boolean;
 };
 
+export type ApiResponseLog = {
+  url: string;
+  finalUrl: string;
+  status: number;
+  body: unknown;
+};
+
+type ApiRequestInit = RequestInit & {
+  onResponse?: (info: ApiResponseLog) => void;
+};
+
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081";
 
 const LOGIN_PATHS = ["/", "/login"];
 let isHandlingExpiredSession = false;
@@ -40,7 +52,8 @@ export function getAuthHeaders() {
 
 export function resolveApiUrl(path: string) {
   if (/^https?:\/\//i.test(path)) return path;
-  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const baseUrl = API_BASE_URL.replace(/\/$/, "");
+  return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export function buildQueryString(params?: Record<string, unknown>) {
@@ -127,21 +140,32 @@ function handleExpiredSession() {
   }, 0);
 }
 
-export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiRequest<T>(path: string, init: ApiRequestInit = {}): Promise<T> {
   const url = resolveApiUrl(path);
-  const response = await fetch(url, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...getAuthHeaders(),
-      ...init.headers,
-    },
-  });
+  const { onResponse, ...requestInit } = init;
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      ...requestInit,
+      headers: {
+        Accept: "application/json",
+        ...getAuthHeaders(),
+        ...requestInit.headers,
+      },
+    });
+    markNetworkOnline();
+  } catch (error) {
+    markNetworkOffline();
+    throw error;
+  }
 
   const contentType = response.headers.get("content-type") ?? "";
   const body = contentType.includes("application/json")
     ? await response.json()
     : await response.text();
+
+  onResponse?.({ url, finalUrl: response.url || url, status: response.status, body });
 
   if (!response.ok) {
     if (isAuthErrorStatus(response.status)) {

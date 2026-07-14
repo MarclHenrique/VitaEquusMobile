@@ -33,6 +33,12 @@ export default defineConfig(({ mode }) => ({
           });
         },
       },
+      "/health": {
+        target: "http://localhost:8081",
+        changeOrigin: true,
+        secure: false,
+        rewriteWsOrigin: true,
+      },
     },
   },
   plugins: [react()],

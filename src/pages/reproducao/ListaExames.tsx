@@ -206,7 +206,7 @@ export default function ListaExames() {
                   <p className="text-sm font-semibold text-foreground truncate">
                     {exame.animalNome ?? `Animal #${exame.animalId}`}
                   </p>
-                  <RecordSyncBadge status={(exame as any).syncStatus} />
+                  <RecordSyncBadge status={(exame as { syncStatus?: string | null }).syncStatus} />
                   <p className="text-[10px] text-muted-foreground shrink-0">{formatDate(exame.dataHora)}</p>
                 </div>
                 <p className="text-xs text-muted-foreground">
